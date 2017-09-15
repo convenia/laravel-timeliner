@@ -1,0 +1,18 @@
+# v2 syntax
+version: '2'
+# Named volumes
+volumes:
+  # Dynamo-db local
+  dynamo-db-local:
+    driver: local
+services:
+  dynamo-db:
+    image: cnadiminti/dynamodb-local
+    container_name: dynamo-db
+    volumes:
+      - ./dynamo/:/root/.aws
+    expose:
+      - 8000
+    ports:
+      - 8000:8000
+
