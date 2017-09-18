@@ -91,4 +91,13 @@ trait TimelinerQuery
     {
         return $query->whereIn('permission', 'contains', $personId);
     }
+
+    /**
+     * @param $employeeId
+     * @return mixed
+     */
+    public static function myTimeline($employeeId)
+    {
+        return self::query()->byPerson($employeeId)->get();
+    }
 }
