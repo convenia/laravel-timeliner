@@ -12,49 +12,21 @@ use Validator;
 
 class TimelineService
 {
-    public function mirrorData($content, $params)
+
+    protected $defaultConfig = [
+        'custom' => [
+            'fields' => [
+                'company_id' => 'company_id',
+                'pinned' => '0|static',
+                'category' => 'Recados|static',
+            ],
+            'date' => 'created_at'
+        ]
+    ];
+
+    public function getConfig($config)
     {
-        $data = collect($content);
-
-        if (! $content instanceof Collection) {
-            $data = collect($content);
-        } else {
-            $data = $content;
-        }
-        if (key_exists('serialize', $params) && $params['serialize'] == true) {
-            $data->put('obj', $content->toArray());
-        }
-
-        if (key_exists('type', $params)) {
-            $data->put('type', $params['type']);
-        } else {
-            $data->put('type', Timeline::DEFAULT_TYPE);
-        }
-
-        if (key_exists('tags', $params)) {
-            $data->put('user_tags', $params['tags']);
-        }
-
-        $data->put('pinned', $params['pinned']);
-        $data->put('event', self::generateEvent($params['event']['category'], $params['event']['name']));
-        $data->put('system_tags', self::generateSystemTags($params['event']['name'], null, true));
-        $data->put('id', self::buildMirrorId($params['event']['name']));
-
-        self::makeValidate($params);
-
-        $mirrorable = Timeline::find($this->buildMirrorId($params['event']['name']));
-
-        if ($mirrorable === null) {
-            $mirrorable = app(Timeline::class);
-        }
-
-        $data->each(function ($content, $field) use ($mirrorable) {
-            $mirrorable->{$field} = $content;
-        });
-
-        $mirrorable->save();
-
-        return $mirrorable;
+        return array_merge($this->defaultConfig['custom'], $config);
     }
 
     protected function generateEvent($category = null, $name = Timeline::DEFAULT_EVENT, Model $model = null)
@@ -70,6 +42,74 @@ class TimelineService
         }
 
         return $data;
+    }
+
+    public function add($data, $name = 'custom')
+    {
+        $class = get_class($data);
+
+        switch ($class)
+        {
+            case 'Collection' :
+                return $this->insertRaw($data, $name);
+                break;
+            case 'Array' :
+                return $this->insertRaw(collect($data), $name);
+                break;
+            case 'Model' :
+                return $this->prepareModel($data, $name);
+                break;
+        }
+
+    }
+
+    protected function insertRaw(Collection $data, $name = null)
+    {
+        self::makeValidate($data->toArray());
+
+        $mirrorable = Timeline::find($this->buildMirrorId('custom'));
+
+        if ($mirrorable === null) {
+            $mirrorable = app(Timeline::class);
+        }
+
+        $data->each(function ($content, $field) use ($mirrorable) {
+            $mirrorable->{$field} = $content;
+        });
+
+        $mirrorable->save();
+
+        return $mirrorable;
+
+    }
+
+    public function prepareModel(Model $model, $name = null)
+    {
+
+        if ($name === null || array_key_exists($name, $model->mirrorableFormat ?? [])) {
+
+            $configs = $model->mirrorableFormat;
+
+            foreach ($configs as $config => $info) {
+                $this->prepareModel($model, $config);
+            }
+        }
+
+        $event = $this->getConfig($model->mirrorableFormat[$name]);
+
+        $data_reflex = self::prepareModelData($model, $event);
+        $data_reflex->put('obj', $model->toArray());
+        $data_reflex->put('type', class_basename($model));
+        $data_reflex->put('system_tags', self::generateSystemTags($name, $model));
+        $data_reflex->put('user_tags', self::generateUserTags($model, $event['tags']));
+        $data_reflex->put('id', self::buildMirrorId($name, $model));
+
+        $dates = $this->buildDates($model, $event['date']);
+        $data_reflex->put('date', $dates['date']);
+        $data_reflex->put('dateTimestamp', $dates['dateTimestamp']);
+
+        return $this->insertRaw($data_reflex, $name);
+
     }
 
     protected function getNonRequiredField($field, Model $model = null, $nullReturn = null)
@@ -162,20 +202,15 @@ class TimelineService
 
     protected function makeValidate($data)
     {
-        Validator::make($data, self::validationRules())->validate();
-    }
-
-    protected function validationRules()
-    {
-        return [
-            'serialize' => 'sometimes|boolean',
-            'pinned' => 'required|boolean',
-            'tags' => 'sometimes|array',
-            'event.name' => 'required',
-            'event.category' => 'required',
-            'date' => 'required',
-            'dateTimestamp' => 'required',
-        ];
+        Validator::make($data,
+            [
+                'obj' => 'required',
+                'pinned' => 'required',
+                'category' => 'required',
+                'date' => 'required',
+                'dateTimestamp' => 'required',
+            ])
+            ->validate();
     }
 
     public function mirrorModel($model, $name)
@@ -186,14 +221,16 @@ class TimelineService
         $data->put('obj', $model->toArray());
         $data->put('type', class_basename($model));
         $data->put('event', self::generateEvent($event['category'], $name, $model));
-        $data->put('system_tags', self::generateSystemTags($name, $model));
-        $data->put('user_tags', self::generateUserTags($model, $event['tags']));
         $data->put('pinned', self::getNonRequiredField($event['pinned'], $model, false));
         $data->put('id', self::buildMirrorId($name, $model));
 
         $dates = $this->buildDates($model, $event);
         $data->put('date', $dates['date']);
         $data->put('dateTimestamp', $dates['dateTimestamp']);
+
+        // identifier tags
+        $data->put('system_tags', self::generateSystemTags($name, $model));
+        $data->put('user_tags', self::generateUserTags($model, $event['tags']));
 
         $mirrorable = Timeline::find($this->buildMirrorId($name, $model));
 
@@ -224,26 +261,26 @@ class TimelineService
         });
     }
 
-    protected function buildDates(Model $model, $event)
+    protected function buildDates(Model $model, $event = null)
     {
-        if (isset($event['date']) || $model->created_at !== null) {
+        if (isset($event) || $model->created_at !== null) {
             return $this->buildDatesFromField($model, $event['date'] ?? 'created_at');
         }
 
-        $date = Carbon::now();
-
-        return [
-            'date' => $date->format('Y-m-d h:i:s'),
-            'dateTimestamp' => $date->getTimestamp(),
-        ];
+        return $this->dateToArray(Carbon::now());
     }
 
     protected function buildDatesFromField(Model $model, $field)
     {
         $date = Carbon::createFromFormat('Y-m-d H:i:s', $model->{$field});
+        return $this->dateToArray($date);
 
+    }
+
+    protected function dateToArray(Carbon $date)
+    {
         return [
-            'date' => $date,
+            'date' => $date->format('Y-m-d h:i:s'),
             'dateTimestamp' => $date->getTimestamp(),
         ];
     }
