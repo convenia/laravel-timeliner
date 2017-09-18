@@ -46,21 +46,15 @@ class TimelineService
 
     public function add($data, $name = 'custom')
     {
-        $class = get_class($data);
-
-        switch ($class)
+        switch (true)
         {
-            case 'Collection' :
-                return $this->insertRaw($data, $name);
-                break;
-            case 'Array' :
-                return $this->insertRaw(collect($data), $name);
-                break;
-            case 'Model' :
+            case $data instanceof Model :
                 return $this->prepareModel($data, $name);
                 break;
+            default :
+                return $this->insertRaw(collect($data), $name);
+                break;
         }
-
     }
 
     protected function insertRaw(Collection $data, $name = null)
