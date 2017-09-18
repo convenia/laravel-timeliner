@@ -4,6 +4,7 @@ namespace Convenia\Timeliner\Traits;
 
 use Convenia\Timeliner\Models\Timeline;
 use Convenia\Timeliner\Observers\TimelinerObserver;
+use Convenia\Timeliner\Services\TimelineService;
 
 /**
  * Trait Timelinable
@@ -44,5 +45,11 @@ trait Timelinable
     public function mirrorable()
     {
         return Timeline::query();
+    }
+
+    public function mirror()
+    {
+        $service = app(TimelineService::class);
+        $service->add($this, null);
     }
 }
