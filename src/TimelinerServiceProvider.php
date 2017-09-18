@@ -13,7 +13,7 @@ class TimelinerServiceProvider extends ServiceProvider
     {
         $this->app->register('BaoPham\DynamoDb\DynamoDbServiceProvider');
         $this->publishes([
-            __DIR__.'/config/mirrorable-config.php',
+            __DIR__.'/config/mirrorable.php',
         ]);
     }
 

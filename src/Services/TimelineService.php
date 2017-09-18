@@ -67,6 +67,7 @@ class TimelineService
             $mirrorable = app(Timeline::class);
         }
 
+
         $data->each(function ($content, $field) use ($mirrorable) {
             $mirrorable->{$field} = $content;
         });
@@ -83,8 +84,9 @@ class TimelineService
         if ($name === null || ! array_key_exists($name, $model->mirrorableFormat)) {
 
             $configs = $model->mirrorableFormat;
+
             foreach ($configs as $config => $info) {
-                $this->prepareModel($model, $config);
+                return $this->prepareModel($model, $config);
             }
         }
 
@@ -101,8 +103,9 @@ class TimelineService
         $data_reflex->put('date', $dates['date']);
         $data_reflex->put('dateTimestamp', $dates['dateTimestamp']);
 
-        return $this->insertRaw($data_reflex, $name);
+        $data_reflex->put('permissions', $model->setMirrorablePermissions($model) ?? null);
 
+        return $this->insertRaw($data_reflex, $name);
     }
 
     protected function getNonRequiredField($field, Model $model = null, $nullReturn = null)
