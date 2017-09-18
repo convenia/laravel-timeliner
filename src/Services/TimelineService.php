@@ -80,10 +80,9 @@ class TimelineService
     public function prepareModel(Model $model, $name = null)
     {
 
-        if ($name === null || array_key_exists($name, $model->mirrorableFormat ?? [])) {
+        if ($name === null || ! array_key_exists($name, $model->mirrorableFormat)) {
 
             $configs = $model->mirrorableFormat;
-
             foreach ($configs as $config => $info) {
                 $this->prepareModel($model, $config);
             }
