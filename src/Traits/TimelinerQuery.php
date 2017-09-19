@@ -16,7 +16,6 @@ trait TimelinerQuery
      */
     public function addInNode($node, $values, $type = 'NS')
     {
-
         try {
             $this->getClient()->updateItem([
                 'TableName' => $this->table,
@@ -46,7 +45,6 @@ trait TimelinerQuery
      */
     public function removeFromNode($node, $values, $type = 'NS')
     {
-
         try {
             $result = $this->getClient()->updateItem([
                 'TableName' => $this->table,

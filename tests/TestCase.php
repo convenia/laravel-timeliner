@@ -53,7 +53,6 @@ class TestCase extends Orchestra
 
     public function setUp()
     {
-
         $this->timelineService = new TimelineService();
 
         parent::setUp();
@@ -113,7 +112,6 @@ class TestCase extends Orchestra
 
     private function createTestModel()
     {
-
         $this->testModel = new TestModel();
     }
 

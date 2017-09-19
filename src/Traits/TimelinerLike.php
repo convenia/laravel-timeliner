@@ -6,7 +6,6 @@ trait TimelinerLike
 {
     public function likeOrDislike($employeeId)
     {
-
         $likes = collect([]);
 
         if ($this->likes !== null) {

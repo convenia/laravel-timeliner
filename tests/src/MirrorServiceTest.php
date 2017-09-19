@@ -16,7 +16,6 @@ class MirrorServiceTest extends TestCase
      */
     public function test_create_mirror_data()
     {
-
         $this->app->bind(TimelinerObserver::class, function () {
             return $this->getMockBuilder(TimelinerObserver::class)->disableOriginalConstructor()->getMock();
         });

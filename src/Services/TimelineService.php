@@ -12,7 +12,6 @@ use Validator;
 
 class TimelineService
 {
-
     protected $defaultConfig = [
         'custom' => [
             'fields' => [
@@ -46,12 +45,11 @@ class TimelineService
 
     public function add($data, $name = 'custom')
     {
-        switch (true)
-        {
-            case $data instanceof Model :
+        switch (true) {
+            case $data instanceof Model:
                 return $this->prepareModel($data, $name);
                 break;
-            default :
+            default:
                 return $this->insertRaw(collect($data), $name);
                 break;
         }
@@ -75,14 +73,11 @@ class TimelineService
         $mirrorable->save();
 
         return $mirrorable;
-
     }
 
     public function prepareModel(Model $model, $name = null)
     {
-
         if ($name === null || ! array_key_exists($name, $model->mirrorableFormat)) {
-
             $configs = $model->mirrorableFormat;
 
             foreach ($configs as $config => $info) {
@@ -119,12 +114,11 @@ class TimelineService
 
     public function getField(Model $model, $field)
     {
-
         switch (true) {
             case is_array($field):
                 return $this->getFieldArray($model, $field);
                 break;
-            case is_string($field) :
+            case is_string($field):
                 return $this->getFieldString($model, $field);
                 break;
         }
@@ -270,7 +264,6 @@ class TimelineService
     {
         $date = Carbon::createFromFormat('Y-m-d H:i:s', $model->{$field});
         return $this->dateToArray($date);
-
     }
 
     protected function dateToArray(Carbon $date)

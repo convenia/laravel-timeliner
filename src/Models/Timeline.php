@@ -91,16 +91,16 @@ class Timeline extends DynamoDbModel
 
         switch ($filters) {
 
-            case isset($filters['date_start']) :
+            case isset($filters['date_start']):
                 $query->where('dateTimestamp', '>', $filters['date_start']);
                 break;
-            case isset($filters['date_end']) :
+            case isset($filters['date_end']):
                 $query->where('dateTimestamp', '<', $filters['date_end']);
                 break;
-            case isset($filters['category']) :
+            case isset($filters['category']):
                 $query->where('category', '=', $filters['category']);
                 break;
-            case isset($filters['type']) :
+            case isset($filters['type']):
                 $query->where('type', '=', $filters['type']);
                 break;
         }
