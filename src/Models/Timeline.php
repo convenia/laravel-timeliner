@@ -24,7 +24,7 @@ class Timeline extends DynamoDbModel
     protected $dynamoDbIndexKeys = [
         'id-dateTimestamp-index' => [
             'hash' => 'id',
-            'sort' => 'dateTimestamp',
+            'range' => 'dateTimestamp',
         ],
     ];
 
@@ -80,28 +80,27 @@ class Timeline extends DynamoDbModel
     public static function myTimeline($employeeId, $filters = [])
     {
         $default = self::$defaultFilter;
-        $filters = array_merge($filters, $default);
+        $filters = array_merge($default, $filters);
 
         $query = self::query();
 
-
-        return self::query()
-            ->byPerson($employeeId)
+        $query
+            //->byPerson($employeeId)
             ->limit($filters['per_page'] * $filters['page'])->get()
             ->forPage($filters['page'], 15);
 
         switch ($filters) {
 
-            case isset($filters['date_start']):
-                $query->where('dateTimestamp', '>', $filters['date_start']);
+            case !is_null($filters['date_start']):
+                $query->where('dateTimestamp', '>', (int) $filters['date_start']);
                 break;
-            case isset($filters['date_end']):
-                $query->where('dateTimestamp', '<', $filters['date_end']);
+            case !is_null($filters['date_end']):
+                $query->where('dateTimestamp', '<', (int) $filters['date_end']);
                 break;
-            case isset($filters['category']):
+            case !is_null($filters['category']):
                 $query->where('category', '=', $filters['category']);
                 break;
-            case isset($filters['type']):
+            case !is_null($filters['type']):
                 $query->where('type', '=', $filters['type']);
                 break;
         }
