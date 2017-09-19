@@ -49,7 +49,7 @@ class Timeline extends DynamoDbModel
         'updated_at'
     ];
 
-    protected $defaultFilter = [
+    static $defaultFilter = [
         'page' => 1,
         'start_at' => null,
         'per_page' => 15,
@@ -79,7 +79,8 @@ class Timeline extends DynamoDbModel
 
     public static function myTimeline($employeeId, $filters = [])
     {
-        $filters = array_merge($filters, self::$defaultFilter);
+        $default = self::$defaultFilter;
+        $filters = array_merge($filters, $default);
 
         $query = self::query();
 
