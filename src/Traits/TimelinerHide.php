@@ -5,6 +5,11 @@ namespace Convenia\Timeliner\Traits;
 use BaoPham\DynamoDb\DynamoDbQueryBuilder;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Trait TimelinerHide
+ *
+ * @package Convenia\Timeliner\Traits
+ */
 trait TimelinerHide
 {
     public static function toggleVisibility($timelineId, $employeeId)
@@ -20,10 +25,10 @@ trait TimelinerHide
     {
         parent::boot();
 
-        if (Auth::user() !== null) {
-            static::addGlobalScope('withoutHide', function (DynamoDbQueryBuilder $builder) {
-                $builder->where('hides', 'not_contains', Auth::user()->employee()->first()->id);
-            });
-        }
+        //if (Auth::user() !== null) {
+        //    static::addGlobalScope('withoutHide', function (DynamoDbQueryBuilder $builder) {
+        //        $builder->where('hides', 'not_contains', Auth::user()->employee()->first()->id);
+        //    });
+        //}
     }
 }

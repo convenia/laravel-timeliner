@@ -28,6 +28,9 @@ class Timeline extends DynamoDbModel
         ],
     ];
 
+    protected $primaryKey = ['id'];
+    protected $compositeKey = ['id', 'dateTimestamp'];
+
     /**
      * @var array
      */

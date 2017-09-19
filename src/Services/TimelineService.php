@@ -18,6 +18,7 @@ class TimelineService
                 'company_id' => 'company_id',
                 'pinned' => '0|static',
                 'category' => 'Recados|static',
+                'date' => 'created_at'
             ],
             'date' => 'created_at'
         ]
@@ -59,12 +60,11 @@ class TimelineService
     {
         self::makeValidate($data->toArray());
 
-        $mirrorable = Timeline::find($this->buildMirrorId('custom'));
+        $mirrorable = Timeline::query()->where('id', $this->buildMirrorId('custom'))->first();
 
         if ($mirrorable === null) {
             $mirrorable = app(Timeline::class);
         }
-
 
         $data->each(function ($content, $field) use ($mirrorable) {
             $mirrorable->{$field} = $content;
@@ -210,8 +210,8 @@ class TimelineService
         $data = self::prepareModelData($model, $event);
         $data->put('obj', $model->toArray());
         $data->put('type', class_basename($model));
-        $data->put('event', self::generateEvent($event['category'], $name, $model));
-        $data->put('pinned', self::getNonRequiredField($event['pinned'], $model, false));
+        $data->put('event', self::generateEvent($event['fields']['category'], $name, $model));
+        $data->put('pinned', self::getNonRequiredField($event['fields']['pinned'], $model, false));
         $data->put('id', self::buildMirrorId($name, $model));
 
         $dates = $this->buildDates($model, $event);
@@ -222,19 +222,8 @@ class TimelineService
         $data->put('system_tags', self::generateSystemTags($name, $model));
         $data->put('user_tags', self::generateUserTags($model, $event['tags']));
 
-        $mirrorable = Timeline::find($this->buildMirrorId($name, $model));
 
-        if ($mirrorable === null) {
-            $mirrorable = app(Timeline::class);
-        }
-
-        collect($data->toArray())->each(function ($content, $field) use ($mirrorable) {
-            $mirrorable->{$field} = $content;
-        });
-
-        $mirrorable->save();
-
-        return $mirrorable;
+        return $this->insertRaw($data, $name);
     }
 
     public function prepareModelData(Model $model, $event)
