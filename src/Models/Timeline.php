@@ -41,6 +41,24 @@ class Timeline extends DynamoDbModel
         'permission',
     ];
 
+    protected $hidden = [
+        'permissions',
+        'hides',
+        'company_id',
+        'created_at',
+        'updated_at'
+    ];
+
+    protected $defaultFilter = [
+        'page' => 1,
+        'start_at' => null,
+        'per_page' => 15,
+        'date_start' => null,
+        'date_end' => null,
+        'category' => null,
+        'type' => null
+    ];
+
     /**
      * Mirrorable constructor.
      *
@@ -51,5 +69,42 @@ class Timeline extends DynamoDbModel
         $this->table = config('mirrorable.table', 'TestTable');
         parent::__construct($attributes);
         $this->client = $this->getClient();
+    }
+
+    /**
+     * @param $employeeId
+     * @return mixed
+     */
+
+
+    public static function myTimeline($employeeId, $filters = [])
+    {
+        $filters = array_merge($filters, self::$defaultFilter);
+
+        $query = self::query();
+
+
+        return self::query()
+            ->byPerson($employeeId)
+            ->limit($filters['per_page'] * $filters['page'])->get()
+            ->forPage($filters['page'], 15);
+
+        switch ($filters) {
+
+            case isset($filters['date_start']) :
+                $query->where('dateTimestamp', '>', $filters['date_start']);
+                break;
+            case isset($filters['date_end']) :
+                $query->where('dateTimestamp', '<', $filters['date_end']);
+                break;
+            case isset($filters['category']) :
+                $query->where('category', '=', $filters['category']);
+                break;
+            case isset($filters['type']) :
+                $query->where('type', '=', $filters['type']);
+                break;
+        }
+
+        return $query->get();
     }
 }
