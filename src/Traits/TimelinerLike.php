@@ -9,15 +9,14 @@ trait TimelinerLike
         $likes = collect([]);
 
         if ($this->likes !== null) {
-            $likes = collect($this->likes->toArray());
+            $likes = collect($likes = $this->likes->toArray());
         }
 
-        if ($likes->search($employeeId)) {
-            $this->removeFromNode('likes', $employeeId);
+        if ($likes->search($employeeId, false) !== false) {
+            return $this->removeFromNode('likes', $employeeId);
         }
 
-        $this->addInNode('likes', $employeeId);
+        return $this->addInNode('likes', $employeeId);
 
-        return $this;
     }
 }

@@ -2,9 +2,15 @@
 
 namespace Convenia\Timeliner\Traits;
 
+use Aws\DynamoDb\SetValue;
 use Convenia\Timeliner\Exceptions\CommandFailed;
 use Mockery\Exception;
 
+/**
+ * Trait TimelinerQuery
+ *
+ * @package Convenia\Timeliner\Traits
+ */
 trait TimelinerQuery
 {
     /**
@@ -16,24 +22,20 @@ trait TimelinerQuery
      */
     public function addInNode($node, $values, $type = 'NS')
     {
-        try {
-            $this->getClient()->updateItem([
-                'TableName' => $this->table,
-                'Key' => [
-                    'id' => [
-                        'S' => $this->id,
-                    ],
-                ],
-                'ExpressionAttributeValues' => [
-                    ":v" => ["{$type}" => [$values]],
-                ],
-                'UpdateExpression' => "ADD {$node} :v",
-            ]);
-        } catch (Exception $e) {
-            throw new CommandFailed($e->getMessage());
+
+        $oldValues = $this->{$node};
+
+        if ($oldValues === null) {
+            $oldValues = collect([]);
         }
 
+        $oldValues = $oldValues->toArray();
+
+        $oldValues[] = $values;
+        $this->{$node} = new SetValue($oldValues);
+        $this->save();
         return $this;
+
     }
 
     /**
@@ -45,26 +47,21 @@ trait TimelinerQuery
      */
     public function removeFromNode($node, $values, $type = 'NS')
     {
-        try {
-            $result = $this->getClient()->updateItem([
-                'TableName' => $this->table,
-                'Key' => [
-                    'id' => [
-                        'S' => $this->id,
-                    ],
-                ],
-                'AttributeUpdates' => [
-                    "{$node}" => [
-                        'Action' => 'DELETE',
-                        'Value' => [
-                            "{$type}" => [$values],
-                        ],
-                    ],
-                ],
-            ]);
-        } catch (Exception $e) {
-            throw new CommandFailed($e->getMessage());
+        $oldValues = [];
+
+        if ($this->{$node} !== null) {
+            $oldValues = $this->{$node}->toArray();
         }
+
+        $exists = array_search($values, $oldValues, false);
+
+        if ($exists === false) {
+            return $this;
+        }
+
+        unset($oldValues[$exists]);
+        $this->{$node} = new SetValue($oldValues);
+        $this->save();
 
         return $this;
     }
