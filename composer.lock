@@ -92,7 +92,7 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:convenia/laravel-dynamodb.git",
-                "reference": "d35c563fefa4516c58bde804ee5da404b8ffc1c8"
+                "reference": "5dad905039f0f7ebe2ae8d438db415f851fc9ca5"
             },
             "require": {
                 "aws/aws-sdk-php": "^3.0.0",
@@ -143,7 +143,7 @@
                 "dynamodb",
                 "laravel"
             ],
-            "time": "2017-09-19T19:06:09+00:00"
+            "time": "2017-09-19T19:32:24+00:00"
         },
         {
             "name": "doctrine/inflector",

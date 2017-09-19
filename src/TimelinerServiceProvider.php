@@ -11,7 +11,6 @@ class TimelinerServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->app->register('BaoPham\DynamoDb\DynamoDbServiceProvider');
         $this->publishes([
             __DIR__.'/config/mirrorable.php',
         ]);
