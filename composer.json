@@ -30,7 +30,6 @@
   },
   "require": {
     "php": ">=7",
-    "baopham/dynamodb": "dev-master",
     "illuminate/support": "~5.0|5.1|5.2|~5.3|~5.4|~5.5"
   },
   "require-dev": {
@@ -45,13 +44,6 @@
       "Convenia\\Timeliner\\": "src"
     }
   },
-  "repositories": [
-    {
-      "type": "git",
-      "url": "git@github.com:convenia/laravel-dynamodb.git"
-
-    }
-  ],
   "autoload-dev": {
     "psr-4": {
       "Convenia\\Timeliner\\Tests\\": "tests"
