@@ -84,7 +84,7 @@ trait TimelinerQuery
      */
     public function scopeByPerson($query, $personId)
     {
-        return $query->whereIn('permission', 'contains', $personId);
+        return $query->whereIn('permissions', 'contains', $personId);
     }
 
     /**
