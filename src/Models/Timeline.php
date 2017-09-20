@@ -90,8 +90,8 @@ class Timeline extends DynamoDbModel
 
         $query
             ->byPerson($employeeId)
-            ->limit($filters['per_page'] * $filters['page'])->get()
-            ->forPage($filters['page'], 15);
+            ->limit($filters['per_page'])->get()
+            ->forPage($filters['page'], $filters['per_page']);
 
         switch ($filters) {
 
