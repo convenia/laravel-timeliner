@@ -8,6 +8,7 @@ use Convenia\Timeliner\Exceptions\InvalidFieldException;
 use Convenia\Timeliner\Models\Timeline;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Validator;
 
 class TimelineService
@@ -56,9 +57,18 @@ class TimelineService
         }
     }
 
-    protected function insertRaw(Collection $data, $name = null)
+    protected function insertRaw(Collection $data, $name = null, $throw = true)
     {
-        self::makeValidate($data->toArray());
+        try {
+            self::makeValidate($data->toArray());
+        } catch (\Exception $e) {
+            Log::info(print_r($data, true));
+            if ($throw) {
+                throw $e;
+            }
+
+            return;
+        }
 
         $mirrorable = Timeline::query()->where('id', $this->buildMirrorId('custom'))->first();
 
@@ -89,12 +99,16 @@ class TimelineService
 
         $data_reflex = self::prepareModelData($model, $event);
         $data_reflex->put('obj', $model->toArray());
-        $data_reflex->put('type', class_basename($model));
+        $data_reflex->put('type', $name);
+        $data_reflex->put('model', class_basename($model));
         $data_reflex->put('system_tags', self::generateSystemTags($name, $model));
         $data_reflex->put('user_tags', self::generateUserTags($model, $event['tags']));
         $data_reflex->put('id', self::buildMirrorId($name, $model));
 
         $dates = $this->buildDates($model, $event['date']);
+
+
+
         $data_reflex->put('date', $dates['date']);
         $data_reflex->put('dateTimestamp', $dates['dateTimestamp']);
 
@@ -209,7 +223,8 @@ class TimelineService
 
         $data = self::prepareModelData($model, $event);
         $data->put('obj', $model->toArray());
-        $data->put('type', class_basename($model));
+        $data->put('type', $name);
+        $data->put('model', class_basename($model));
         $data->put('event', self::generateEvent($event['fields']['category'], $name, $model));
         $data->put('pinned', self::getNonRequiredField($event['fields']['pinned'], $model, false));
         $data->put('id', self::buildMirrorId($name, $model));
@@ -240,10 +255,10 @@ class TimelineService
         });
     }
 
-    protected function buildDates(Model $model, $event = null)
+    protected function buildDates(Model $model, $field = null)
     {
-        if (isset($event) || $model->created_at !== null) {
-            return $this->buildDatesFromField($model, $event['date'] ?? 'created_at');
+        if ($field !== null || $model->created_at !== null) {
+            return $this->buildDatesFromField($model, $field ?? 'created_at');
         }
 
         return $this->dateToArray(Carbon::now());
@@ -251,6 +266,10 @@ class TimelineService
 
     protected function buildDatesFromField(Model $model, $field)
     {
+        if ($model->{$field} instanceof Carbon) {
+            return $this->dateToArray($model->{$field});
+        }
+
         $date = Carbon::createFromFormat('Y-m-d H:i:s', $model->{$field});
         return $this->dateToArray($date);
     }
