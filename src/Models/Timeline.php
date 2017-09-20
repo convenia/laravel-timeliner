@@ -59,7 +59,8 @@ class Timeline extends DynamoDbModel
         'date_start' => null,
         'date_end' => null,
         'category' => null,
-        'type' => null
+        'type' => null,
+        'pinned' => null,
     ];
 
     /**
@@ -88,7 +89,7 @@ class Timeline extends DynamoDbModel
         $query = self::query();
 
         $query
-            //->byPerson($employeeId)
+            ->byPerson($employeeId)
             ->limit($filters['per_page'] * $filters['page'])->get()
             ->forPage($filters['page'], 15);
 
@@ -105,6 +106,12 @@ class Timeline extends DynamoDbModel
                 break;
             case !is_null($filters['type']):
                 $query->where('type', '=', $filters['type']);
+                break;
+            case !is_null($filters['start_at']):
+                $query->where('dateTimestamp', '=', $filters['start_at']);
+                break;
+            case !is_null($filters['pinned']):
+                $query->where('pinned', '=', $filters['pinned']);
                 break;
         }
 
