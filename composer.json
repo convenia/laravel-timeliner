@@ -48,7 +48,8 @@
   "repositories": [
     {
       "type": "git",
-      "url": "git@github.com:convenia/laravel-dynamodb.git"
+      "url": "git@github.com:convenia/laravel-dynamodb.git",
+      "packagist.org": false
 
     }
   ],
