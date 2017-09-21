@@ -45,21 +45,29 @@ class TimelineService
         return $data;
     }
 
-    public function add($data, $name = 'custom')
+    public function add($data, $name = 'custom', $trhow = true)
     {
+
         switch (true) {
             case $data instanceof Model:
-                return $this->prepareModel($data, $name);
+                return $this->prepareModel($data, $name, $trhow);
                 break;
             default:
-                return $this->insertRaw(collect($data), $name);
+                return $this->insertRaw(collect($data), $name, null, $trhow);
                 break;
         }
     }
 
-    protected function insertRaw(Collection $data, $name = null, $model = null)
+    protected function insertRaw(Collection $data, $name = null, $model = null, $thow = true)
     {
-        self::makeValidate($data->toArray());
+        try {
+            self::makeValidate($data->toArray());
+        } catch (\Exception $e) {
+            if ($thow) {
+                throw $e;
+            }
+            return ;
+        }
 
         $mirrorable = Timeline::query()->where('id', $this->buildMirrorId($name, $model))->first();
 
@@ -76,7 +84,7 @@ class TimelineService
         return $mirrorable;
     }
 
-    public function prepareModel(Model $model, $name = null)
+    public function prepareModel(Model $model, $name = null, $trhow = true)
     {
         if ($name === null || ! array_key_exists($name, $model->mirrorableFormat)) {
             $configs = $model->mirrorableFormat;
@@ -88,7 +96,7 @@ class TimelineService
 
         $event = $this->getConfig($model->mirrorableFormat[$name]);
 
-        $data_reflex = self::prepareModelData($model, $event);
+        $data_reflex = collect([]);
         $data_reflex->put('obj', $model->toArray());
         $data_reflex->put('type', $name);
         $data_reflex->put('model', class_basename($model));
@@ -105,7 +113,7 @@ class TimelineService
 
         $data_reflex->put('permissions', $model->setMirrorablePermissions($model) ?? null);
 
-        return $this->insertRaw($data_reflex, $name, $model);
+        return $this->insertRaw($data_reflex, $name, $model, $trhow);
     }
 
     protected function getNonRequiredField($field, Model $model = null, $nullReturn = null)
