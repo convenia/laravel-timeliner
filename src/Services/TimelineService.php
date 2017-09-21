@@ -57,20 +57,11 @@ class TimelineService
         }
     }
 
-    protected function insertRaw(Collection $data, $name = null, $throw = true)
+    protected function insertRaw(Collection $data, $name = null, $model = null)
     {
-        try {
-            self::makeValidate($data->toArray());
-        } catch (\Exception $e) {
-            Log::info(print_r($data, true));
-            if ($throw) {
-                throw $e;
-            }
+        self::makeValidate($data->toArray());
 
-            return;
-        }
-
-        $mirrorable = Timeline::query()->where('id', $this->buildMirrorId('custom'))->first();
+        $mirrorable = Timeline::query()->where('id', $this->buildMirrorId($name, $model))->first();
 
         if ($mirrorable === null) {
             $mirrorable = app(Timeline::class);
@@ -114,7 +105,7 @@ class TimelineService
 
         $data_reflex->put('permissions', $model->setMirrorablePermissions($model) ?? null);
 
-        return $this->insertRaw($data_reflex, $name);
+        return $this->insertRaw($data_reflex, $name, $model);
     }
 
     protected function getNonRequiredField($field, Model $model = null, $nullReturn = null)
