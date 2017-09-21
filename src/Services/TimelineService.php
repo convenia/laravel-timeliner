@@ -249,7 +249,7 @@ class TimelineService
     protected function buildDates(Model $model, $field = null)
     {
         if ($field !== null || $model->created_at !== null) {
-            return $this->buildDatesFromField($model, $field ?? 'created_at');
+            return $this->buildDatesFromField($model, $field['date'] ?? 'created_at');
         }
 
         return $this->dateToArray(Carbon::now());
