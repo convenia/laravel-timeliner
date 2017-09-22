@@ -295,6 +295,10 @@ class TimelineService
 
     public function delete($id)
     {
-        Timeline::findOrFail($id)->delete();
+        $timeline = Timeline::query()->where('id', $id)->first();
+
+        if ($timeline !== null) {
+            $timeline->delete();
+        }
     }
 }
