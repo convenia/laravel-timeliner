@@ -76,7 +76,7 @@ class TimelineService
         $data->each(function ($content, $field) use ($mirrorable) {
             $mirrorable->{$field} = $content;
         });
-        dd($mirrorable->toArray());
+
         $mirrorable->save();
 
         return $mirrorable;
