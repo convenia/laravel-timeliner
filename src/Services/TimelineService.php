@@ -95,6 +95,10 @@ class TimelineService
 
         $event = $this->getConfig($model->mirrorableFormat[$name]);
 
+        if (method_exists($model, 'scopeWithAll') ) {
+            $model->withAll();
+        }
+
         $data_reflex = $this->prepareModelData($model, $event);
         $data_reflex->put('obj', $model->toArray());
         $data_reflex->put('type', $name);
