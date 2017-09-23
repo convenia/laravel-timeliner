@@ -93,32 +93,36 @@ class Timeline extends DynamoDbModel
             ->byPerson($employeeId);
         //->limit($filters['per_page'])->get();
 
-        switch ($filters) {
 
-            case !is_null($filters['date_start']):
-                $dateToWork = Carbon::createFromTimestamp($filters['date_start']);
-                $dateToWork->endOfDay();
-
-                $query->where('dateTimestamp', '<=', (int) $dateToWork->timestamp);
-                break;
-            case !is_null($filters['date_end']):
-                $dateEnd = Carbon::createFromTimestamp($filters['date_start']);
-                $dateEnd->startOfDay();
-                $query->where('dateTimestamp', '>=', (int) $dateEnd->timestamp);
-                break;
-            case !is_null($filters['category']):
-                $query->where('category', '=', $filters['category']);
-                break;
-            case !is_null($filters['type']):
-                $query->where('type', '=', $filters['type']);
-                break;
-            case !is_null($filters['start_at']):
-                $query->where('dateTimestamp', '=', $filters['start_at']);
-                break;
-            case !is_null($filters['pinned']):
-                $query->where('pinned', '=', $filters['pinned']);
-                break;
+        if( !is_null($filters['date_start']) ) {
+            $dateToWork = Carbon::createFromTimestamp($filters['date_start']);
+            $dateToWork->endOfDay();
+            $query->where('dateTimestamp', '<=', (int) $dateToWork->timestamp);
         }
+
+        if( !is_null($filters['date_end'])){
+            $dateEnd = Carbon::createFromTimestamp($filters['date_end']);
+            $dateEnd->startOfDay();
+
+            $query->where('dateTimestamp', '>=', (int) $dateEnd->timestamp);
+        }
+
+        if( !is_null($filters['category'])){
+            $query->where('category', '=', $filters['category']);
+        }
+
+        if( !is_null($filters['type'])){
+            $query->where('type', '=', $filters['type']);
+        }
+
+        if( !is_null($filters['start_at'])){
+            $query->where('dateTimestamp', '=', $filters['start_at']);
+        }
+
+        if( !is_null($filters['pinned'])){
+            $query->where('pinned', '=', $filters['pinned']);
+        }
+
 
         return $query->get()->forPage($filters['page'], $filters['per_page']);;
     }
