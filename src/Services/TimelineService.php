@@ -94,7 +94,7 @@ class TimelineService
 
         $event = $this->getConfig($model->mirrorableFormat[$name]);
 
-        if (method_exists($model, 'scopeWithAll') ) {
+        if (method_exists($model, 'withAll') ) {
             $model->withAll();
         }
 
