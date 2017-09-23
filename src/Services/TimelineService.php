@@ -47,7 +47,6 @@ class TimelineService
 
     public function add($data, $name = 'custom', $trhow = true)
     {
-
         switch (true) {
             case $data instanceof Model:
                 return $this->prepareModel($data, $name, $trhow);
@@ -96,7 +95,7 @@ class TimelineService
 
         $event = $this->getConfig($model->mirrorableFormat[$name]);
 
-        $data_reflex = collect([]);
+        $data_reflex = $this->prepareModelData($model, $event);
         $data_reflex->put('obj', $model->toArray());
         $data_reflex->put('type', $name);
         $data_reflex->put('model', class_basename($model));
@@ -105,8 +104,6 @@ class TimelineService
         $data_reflex->put('id', self::buildMirrorId($name, $model));
 
         $dates = $this->buildDates($model, $event['date']);
-
-
 
         $data_reflex->put('date', $dates['date']);
         $data_reflex->put('dateTimestamp', $dates['dateTimestamp']);
@@ -147,6 +144,7 @@ class TimelineService
         $parameters = explode('|', $field);
 
         if (count($parameters) > 1) {
+
             if ($parameters[1] == 'static') {
                 return $parameters[0];
             }
@@ -173,6 +171,7 @@ class TimelineService
             }
 
             $model->load($childs[0]);
+            $model->load("category");
 
             return $model->{$childs[0]}->{$childs[1]};
         } catch (\Exception $e) {
