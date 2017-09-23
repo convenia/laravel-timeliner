@@ -96,15 +96,15 @@ class Timeline extends DynamoDbModel
 
         if( !is_null($filters['date_start']) ) {
             $dateToWork = Carbon::createFromTimestamp($filters['date_start']);
-            $dateToWork->endOfDay();
-            $query->where('dateTimestamp', '<=', (int) $dateToWork->timestamp);
+            $dateToWork->startOfDay();
+            $query->where('dateTimestamp', '>=', (int) $dateToWork->timestamp);
         }
 
         if( !is_null($filters['date_end'])){
             $dateEnd = Carbon::createFromTimestamp($filters['date_end']);
-            $dateEnd->startOfDay();
+            $dateEnd->endOfDay();
 
-            $query->where('dateTimestamp', '>=', (int) $dateEnd->timestamp);
+            $query->where('dateTimestamp', '<=', (int) $dateEnd->timestamp);
         }
 
         if( !is_null($filters['category'])){
