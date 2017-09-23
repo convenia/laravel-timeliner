@@ -73,6 +73,10 @@ class TimelineService
             $mirrorable = app(Timeline::class);
         }
 
+        if ($mirrorable->dateTimestamp ==! null) {
+            $data['dateTimestamp'] = $mirrorable->dateTimestamp;
+        }
+
         $data->each(function ($content, $field) use ($mirrorable) {
             $mirrorable->{$field} = $content;
         });

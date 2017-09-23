@@ -3,6 +3,7 @@
 namespace Convenia\Timeliner\Models;
 
 use BaoPham\DynamoDb\DynamoDbModel;
+use Carbon\Carbon;
 use Convenia\Timeliner\Traits\TimelinerHide;
 use Convenia\Timeliner\Traits\TimelinerLike;
 use Convenia\Timeliner\Traits\TimelinerPaginator;
@@ -90,15 +91,20 @@ class Timeline extends DynamoDbModel
 
         $query
             ->byPerson($employeeId);
-            //->limit($filters['per_page'])->get();
+        //->limit($filters['per_page'])->get();
 
         switch ($filters) {
 
             case !is_null($filters['date_start']):
-                $query->where('dateTimestamp', '>', (int) $filters['date_start']);
+                $dateToWork = Carbon::createFromTimestamp($filters['date_start']);
+                $dateToWork->endOfDay();
+
+                $query->where('dateTimestamp', '<=', (int) $dateToWork->timestamp);
                 break;
             case !is_null($filters['date_end']):
-                $query->where('dateTimestamp', '<', (int) $filters['date_end']);
+                $dateEnd = Carbon::createFromTimestamp($filters['date_start']);
+                $dateEnd->startOfDay();
+                $query->where('dateTimestamp', '>=', (int) $dateEnd->timestamp);
                 break;
             case !is_null($filters['category']):
                 $query->where('category', '=', $filters['category']);
