@@ -21,7 +21,6 @@ class TimelineService
                 'category' => 'Recados|static',
                 'date' => 'created_at'
             ],
-            'date' => 'created_at'
         ]
     ];
 
@@ -77,7 +76,7 @@ class TimelineService
         $data->each(function ($content, $field) use ($mirrorable) {
             $mirrorable->{$field} = $content;
         });
-
+        dd($mirrorable->toArray());
         $mirrorable->save();
 
         return $mirrorable;
@@ -101,7 +100,11 @@ class TimelineService
 
         $data_reflex = $this->prepareModelData($model, $event);
         $data_reflex->put('obj', $model->toArray());
-        $data_reflex->put('type', $name);
+
+        if (!isset($data_reflex['type'])) {
+            $data_reflex->put('type', $name);
+        }
+
         $data_reflex->put('model', class_basename($model));
         $data_reflex->put('system_tags', self::generateSystemTags($name, $model));
         $data_reflex->put('user_tags', self::generateUserTags($model, $event['tags']));
