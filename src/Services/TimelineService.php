@@ -46,6 +46,7 @@ class TimelineService
 
     public function add($data, $name = 'custom', $trhow = true)
     {
+
         switch (true) {
             case $data instanceof Model:
                 return $this->prepareModel($data, $name, $trhow);
@@ -67,13 +68,19 @@ class TimelineService
             return ;
         }
 
-        $mirrorable = Timeline::query()->where('id', $this->buildMirrorId($name, $model))->first();
+        $timelineId = $this->buildMirrorId($name, $model);
+
+        if (isset($data['id'])) {
+            $timelineId = $data['id'];
+        }
+
+        $mirrorable = Timeline::query()->where('id', $timelineId)->first();
 
         if ($mirrorable === null) {
             $mirrorable = app(Timeline::class);
         }
 
-        if ($mirrorable->dateTimestamp ==! null) {
+        if ($mirrorable->dateTimestamp !== null) {
             $data['dateTimestamp'] = $mirrorable->dateTimestamp;
         }
 
