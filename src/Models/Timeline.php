@@ -56,7 +56,7 @@ class Timeline extends DynamoDbModel
     static $defaultFilter = [
         'page' => 1,
         'start_at' => null,
-        'per_page' => 15,
+        'per_page' => 50,
         'date_start' => null,
         'date_end' => null,
         'category' => null,
@@ -124,6 +124,7 @@ class Timeline extends DynamoDbModel
         }
 
 
-        return $query->get()->forPage($filters['page'], $filters['per_page']);;
+        return $query->get()->sortBy('dateTimestamp')
+            ->forPage($filters['page'], $filters['per_page']);
     }
 }
