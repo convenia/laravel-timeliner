@@ -1,5 +1,4 @@
 <?php
-
 namespace Convenia\Timeliner\Services;
 
 use Aws\DynamoDb\SetValue;
@@ -8,9 +7,13 @@ use Convenia\Timeliner\Exceptions\InvalidFieldException;
 use Convenia\Timeliner\Models\Timeline;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use Validator;
 
+/**
+ * Class TimelineService
+ *
+ * @package Convenia\Timeliner\Services
+ */
 class TimelineService
 {
     protected $defaultConfig = [
@@ -24,26 +27,41 @@ class TimelineService
         ]
     ];
 
+    /**
+     * @param $config
+     * @return array
+     */
     public function getConfig($config)
     {
         return array_merge($this->defaultConfig['custom'], $config);
     }
 
+    /**
+     * @param null $category
+     * @param string $name
+     * @param \Illuminate\Database\Eloquent\Model|null $model
+     * @return \Illuminate\Support\Collection
+     */
     protected function generateEvent($category = null, $name = Timeline::DEFAULT_EVENT, Model $model = null)
     {
         $data = collect([
             'type' => $name ?? Timeline::DEFAULT_EVENT,
         ]);
 
+        $data->put('category', $category);
         if (! is_null($model)) {
             $data->put('category', self::getNonRequiredField($category, $model));
-        } else {
-            $data->put('category', $category);
         }
 
         return $data;
     }
 
+    /**
+     * @param $data
+     * @param string $name
+     * @param bool $trhow
+     * @return \Illuminate\Foundation\Application|mixed|void
+     */
     public function add($data, $name = 'custom', $trhow = true)
     {
 
@@ -57,6 +75,14 @@ class TimelineService
         }
     }
 
+    /**
+     * @param \Illuminate\Support\Collection $data
+     * @param null $name
+     * @param null $model
+     * @param bool $thow
+     * @return \Illuminate\Foundation\Application|mixed|void
+     * @throws \Exception
+     */
     protected function insertRaw(Collection $data, $name = null, $model = null, $thow = true)
     {
         try {
@@ -74,7 +100,7 @@ class TimelineService
             $timelineId = $data['id'];
         }
 
-        $mirrorable = Timeline::query()->where('id', $timelineId)->first();
+        $mirrorable = Timeline::query()->where('id', $timelineId)->get()->last();
 
         if ($mirrorable === null) {
             $mirrorable = app(Timeline::class);
@@ -93,13 +119,20 @@ class TimelineService
         return $mirrorable;
     }
 
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param null $name
+     * @param bool $trhow
+     * @return \Illuminate\Foundation\Application|mixed|void
+     */
     public function prepareModel(Model $model, $name = null, $trhow = true)
     {
         if ($name === null || ! array_key_exists($name, $model->mirrorableFormat)) {
             $configs = $model->mirrorableFormat;
 
             foreach ($configs as $config => $info) {
-                return $this->prepareModel($model, $config);
+                $this->prepareModel($model, $config);
+                return ;
             }
         }
 
@@ -131,6 +164,12 @@ class TimelineService
         return $this->insertRaw($data_reflex, $name, $model, $trhow);
     }
 
+    /**
+     * @param $field
+     * @param \Illuminate\Database\Eloquent\Model|null $model
+     * @param null $nullReturn
+     * @return \Aws\DynamoDb\SetValue|mixed|null
+     */
     protected function getNonRequiredField($field, Model $model = null, $nullReturn = null)
     {
         if (is_null($field)) {
@@ -140,6 +179,11 @@ class TimelineService
         return self::getField($model, $field);
     }
 
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param $field
+     * @return \Aws\DynamoDb\SetValue|mixed
+     */
     public function getField(Model $model, $field)
     {
         switch (true) {
@@ -152,11 +196,22 @@ class TimelineService
         }
     }
 
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param $field
+     * @return \Aws\DynamoDb\SetValue
+     */
     public function getFieldArray(Model $model, $field)
     {
         return new SetValue($field);
     }
 
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param $field
+     * @return mixed
+     * @throws \Convenia\Timeliner\Exceptions\InvalidFieldException
+     */
     protected function getFieldString(Model $model, $field)
     {
         $parameters = explode('|', $field);
@@ -197,6 +252,12 @@ class TimelineService
         }
     }
 
+    /**
+     * @param string $name
+     * @param \Illuminate\Database\Eloquent\Model|null $model
+     * @param bool $isCustom
+     * @return \Illuminate\Support\Collection
+     */
     protected function generateSystemTags($name = Timeline::DEFAULT_EVENT, Model $model = null, $isCustom = false)
     {
         $data = collect([
@@ -211,6 +272,11 @@ class TimelineService
         return $data;
     }
 
+    /**
+     * @param $name
+     * @param \Illuminate\Database\Eloquent\Model|null $model
+     * @return string
+     */
     public function buildMirrorId($name, Model $model = null)
     {
         if (! is_null($model)) {
@@ -220,6 +286,9 @@ class TimelineService
         }
     }
 
+    /**
+     * @param $data
+     */
     protected function makeValidate($data)
     {
         Validator::make($data,
@@ -233,6 +302,11 @@ class TimelineService
             ->validate();
     }
 
+    /**
+     * @param $model
+     * @param $name
+     * @return \Illuminate\Foundation\Application|mixed|void
+     */
     public function mirrorModel($model, $name)
     {
         $event = $model->mirrorableFormat[$name];
@@ -257,6 +331,11 @@ class TimelineService
         return $this->insertRaw($data, $name);
     }
 
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param $event
+     * @return $this
+     */
     public function prepareModelData(Model $model, $event)
     {
         return collect($event['fields'] ?? [])->transform(function ($field) use ($model) {
@@ -264,6 +343,11 @@ class TimelineService
         });
     }
 
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param array $tags
+     * @return $this
+     */
     protected function generateUserTags(Model $model, $tags = [])
     {
         return collect($tags)->transform(function ($tag) use ($model) {
@@ -282,6 +366,11 @@ class TimelineService
         return $this->dateToArray(Carbon::now());
     }
 
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param $field
+     * @return array
+     */
     protected function buildDatesFromField(Model $model, $field)
     {
         if ($model->{$field} instanceof Carbon) {
@@ -292,6 +381,10 @@ class TimelineService
         return $this->dateToArray($date);
     }
 
+    /**
+     * @param \Carbon\Carbon $date
+     * @return array
+     */
     protected function dateToArray(Carbon $date)
     {
         return [
@@ -300,11 +393,19 @@ class TimelineService
         ];
     }
 
+    /**
+     * @param $id
+     * @return mixed
+     */
     public function get($id)
     {
         return Timeline::findOrFail($id);
     }
 
+    /**
+     * @param $id
+     * @param $content
+     */
     public function update($id, $content)
     {
         $mirror = Timeline::findOrFail($id);
@@ -312,6 +413,9 @@ class TimelineService
         $mirror->save();
     }
 
+    /**
+     * @param $id
+     */
     public function delete($id)
     {
         $timeline = Timeline::query()->where('id', $id)->first();
