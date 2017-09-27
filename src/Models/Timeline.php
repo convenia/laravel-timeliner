@@ -123,8 +123,20 @@ class Timeline extends DynamoDbModel
             $query->where('pinned', '=', $filters['pinned']);
         }
 
+        $result = self::fixData($query->get());
 
-        return $query->get()->sortBy('dateTimestamp')
-            ->forPage($filters['page'], $filters['per_page']);
+        return $result;
+    }
+
+    public static function fixData($data)
+    {
+        $data->toArray();
+        $result = [];
+
+        foreach($data as $time) {
+            $result[$time['dateTimestamp']] = collect($time);
+        }
+
+        return collect($result)->sort()->reverse();
     }
 }
