@@ -137,6 +137,7 @@ class Timeline extends DynamoDbModel
             $result[$time['dateTimestamp']] = collect($time);
         }
 
-        return collect($result)->sort()->reverse();
+        krsort($result);
+        return collect($result)->values();
     }
 }
