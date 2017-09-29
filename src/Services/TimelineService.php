@@ -357,10 +357,9 @@ class TimelineService
 
     protected function buildDates(Model $model, $field = null)
     {
+
         if ($field !== null || $model->created_at !== null) {
-            if (isset($field['date'])) {
-                return $this->buildDatesFromField($model, $field['date']);
-            }
+            return $this->buildDatesFromField($model, $field);
         }
 
         return $this->dateToArray(Carbon::now());
@@ -399,7 +398,7 @@ class TimelineService
      */
     public function get($id)
     {
-        return Timeline::findOrFail($id);
+        return Timeline::where('id', $id)->get()->last();
     }
 
     /**
@@ -408,7 +407,7 @@ class TimelineService
      */
     public function update($id, $content)
     {
-        $mirror = Timeline::findOrFail($id);
+        $mirror = Timeline::where('id', $id)->get()->last();
         $mirror->update($content);
         $mirror->save();
     }
@@ -418,7 +417,7 @@ class TimelineService
      */
     public function delete($id)
     {
-        $timeline = Timeline::query()->where('id', $id)->first();
+        $timeline = Timeline::query()->where('id', $id)->get()->last();
 
         if ($timeline !== null) {
             $timeline->delete();
