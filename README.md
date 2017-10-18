@@ -1,5 +1,5 @@
 <h1 align="center">
-Laravel Timeliner 
+Laravel Timeliner (with DynamoDB)
 </h1>
 
 
