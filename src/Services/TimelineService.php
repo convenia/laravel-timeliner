@@ -358,7 +358,7 @@ class TimelineService
     protected function buildDates(Model $model, $field = null)
     {
 
-        if ($field !== null || $model->created_at !== null) {
+        if ($field !== null) {
             return $this->buildDatesFromField($model, $field);
         }
 
