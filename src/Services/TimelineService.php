@@ -154,7 +154,7 @@ class TimelineService
         $data_reflex->put('user_tags', self::generateUserTags($model, $event['tags']));
         $data_reflex->put('id', self::buildMirrorId($name, $model));
 
-        $dates = $this->buildDates($model, $event['date']);
+        $dates = $this->buildDates($model, $event['date'] ?? null);
 
         $data_reflex->put('date', $dates['date']);
         $data_reflex->put('dateTimestamp', $dates['dateTimestamp']);
@@ -319,7 +319,7 @@ class TimelineService
         $data->put('pinned', self::getNonRequiredField($event['fields']['pinned'], $model, false));
         $data->put('id', self::buildMirrorId($name, $model));
 
-        $dates = $this->buildDates($model, $event);
+        $dates = $this->buildDates($model, $event ?? null);
         $data->put('date', $dates['date']);
         $data->put('dateTimestamp', $dates['dateTimestamp']);
 
