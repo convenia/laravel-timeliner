@@ -134,7 +134,7 @@ class Timeline extends DynamoDbModel
         $result = [];
 
         foreach($data as $time) {
-            $result[$time['dateTimestamp']] = collect($time);
+            $result[$time['dateTimestamp'].'-'.sprintf('%02d',$key)] = collect($time);
         }
 
         krsort($result);
