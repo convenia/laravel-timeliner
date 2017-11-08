@@ -133,7 +133,7 @@ class Timeline extends DynamoDbModel
         $data->toArray();
         $result = [];
 
-        foreach($data as $time) {
+        foreach($data as $key => $time) {
             $result[$time['dateTimestamp'].'-'.sprintf('%02d',$key)] = collect($time);
         }
 
