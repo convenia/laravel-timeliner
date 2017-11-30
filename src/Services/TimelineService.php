@@ -22,7 +22,8 @@ class TimelineService
                 'company_id' => 'company_id',
                 'pinned' => '0|static',
                 'category' => 'Recados|static',
-                'date' => 'created_at'
+                'date' => 'created_at',
+                'TTL' => null
             ],
         ]
     ];
@@ -155,6 +156,8 @@ class TimelineService
         $data_reflex->put('id', self::buildMirrorId($name, $model));
 
         $dates = $this->buildDates($model, $event['date'] ?? null);
+
+        $data_reflex->put('TTL', $this->ttl($model, $event));
 
         $data_reflex->put('date', $dates['date']);
         $data_reflex->put('dateTimestamp', $dates['dateTimestamp']);
@@ -422,5 +425,14 @@ class TimelineService
         if ($timeline !== null) {
             $timeline->delete();
         }
+    }
+
+    public function ttl($data)
+    {
+        if (isset($data['TTL']) && $data['TTL'] != null && is_numeric($data['TTL'])) {
+            return Carbon::now()->addDays($data['TTL']);
+        }
+
+        return null;
     }
 }
