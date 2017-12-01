@@ -158,7 +158,7 @@ class TimelineService
         $dates = $this->buildDates($model, $event['date'] ?? null);
 
         $data_reflex->put('TTL', $this->ttl($event, $event));
-        dd($data_reflex);
+
         $data_reflex->put('date', $dates['date']);
         $data_reflex->put('dateTimestamp', $dates['dateTimestamp']);
 
