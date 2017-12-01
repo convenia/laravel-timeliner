@@ -157,8 +157,8 @@ class TimelineService
 
         $dates = $this->buildDates($model, $event['date'] ?? null);
 
-        $data_reflex->put('TTL', $this->ttl($model, $event));
-
+        $data_reflex->put('TTL', $this->ttl($event, $event));
+        dd($data_reflex);
         $data_reflex->put('date', $dates['date']);
         $data_reflex->put('dateTimestamp', $dates['dateTimestamp']);
 
@@ -209,12 +209,7 @@ class TimelineService
         return new SetValue($field);
     }
 
-    /**
-     * @param \Illuminate\Database\Eloquent\Model $model
-     * @param $field
-     * @return mixed
-     * @throws \Convenia\Timeliner\Exceptions\InvalidFieldException
-     */
+
     protected function getFieldString(Model $model, $field)
     {
         $parameters = explode('|', $field);
@@ -430,7 +425,7 @@ class TimelineService
     public function ttl($data)
     {
         if (isset($data['TTL']) && $data['TTL'] != null && is_numeric($data['TTL'])) {
-            return Carbon::now()->addDays($data['TTL']);
+            return Carbon::now()->addDays($data['TTL'])->timestamp;
         }
 
         return null;
